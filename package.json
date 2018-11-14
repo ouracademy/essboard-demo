@@ -17,5 +17,10 @@
     "babel-jest": "^23.6.0",
     "jest": "^23.6.0",
     "prettier": "1.15.2"
+  },
+  "dependencies": {
+    "@octokit/rest": "^15.17.0",
+    "abab": "^2.0.0",
+    "nedb": "^1.8.0"
   }
 }
