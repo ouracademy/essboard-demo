@@ -31,4 +31,12 @@ describe("end session", () => {
   it("should add all current project members", () => {
     expect(session.members).toEqual([artmadeit, qpdiam]);
   });
+
+  describe("voting", () => {
+    it("no one can vote when the session it's already finished", () => {
+      expect(() => session.vote(artmadeit, 11)).toThrow(
+        "Session is finished, no one can vote"
+      );
+    });
+  });
 });

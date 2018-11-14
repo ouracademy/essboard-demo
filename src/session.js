@@ -1,5 +1,5 @@
 export class Session {
-  constructor(createdAt) {
+  constructor(createdAt, project) {
     this.createdAt = createdAt;
     this.project = project;
   }
@@ -11,5 +11,9 @@ export class Session {
 
   get isFinished() {
     return !!this.endDate;
+  }
+
+  vote(user, checkpointId) {
+    if (this.isFinished) throw "Session is finished, no one can vote";
   }
 }
