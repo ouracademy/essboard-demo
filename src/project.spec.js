@@ -31,3 +31,12 @@ describe("add a members", () => {
     );
   });
 });
+
+test("should remove", () => {
+  const project = new Project("ouracademy");
+  project.join(artmadeit);
+  project.join(qpdiam);
+
+  project.removeMember(artmadeit);
+  expect(project.hasMember(artmadeit)).toBeFalsy();
+});

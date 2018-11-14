@@ -14,6 +14,10 @@ export class Project extends WithName {
     return this.members.includes(member);
   }
 
+  removeMember(member) {
+    this.members = this.members.filter(x => x !== member);
+  }
+
   get currentSession() {
     return this.sessions[this.sessions.length - 1];
   }

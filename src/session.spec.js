@@ -236,17 +236,32 @@ describe("voting", () => {
     expect(project.sessions[n - 1].alphaStates(stakeholder)).toEqual(expected);
   });
 
-  it("should don't alterate past alpha states when a member is joined", () => {
-    const eli = new User("eli");
-    project.join(eli);
-    const session5 = project.startNewSession();
-    session5.vote(eli, 131);
-    session5.end();
+  describe("shouldn't alterate past alpha states", () => {
+    it("when past alpha states when a member is joined", () => {
+      const eli = new User("eli");
+      project.join(eli);
+      const session5 = project.startNewSession();
+      session5.vote(eli, 131);
+      session5.end();
 
-    expect(session5.alphaStates(stakeholder)).toEqual([
-      { evaluatedBy: "every-member", id: 11 },
-      { evaluatedBy: "every-member", id: 12 },
-      { evaluatedBy: "any-member", id: 13 }
-    ]);
+      expect(session5.alphaStates(stakeholder)).toEqual([
+        { evaluatedBy: "every-member", id: 11 },
+        { evaluatedBy: "every-member", id: 12 },
+        { evaluatedBy: "any-member", id: 13 }
+      ]);
+    });
+
+    it("when a member is removed", () => {
+      const session5 = project.startNewSession();
+      project.removeMember(artmadeit);
+      session5.vote(qpdiam, 132);
+      session5.end();
+
+      expect(session5.alphaStates(stakeholder)).toEqual([
+        { evaluatedBy: "every-member", id: 11 },
+        { evaluatedBy: "every-member", id: 12 },
+        { evaluatedBy: "every-member", id: 13 }
+      ]);
+    });
   });
 });
