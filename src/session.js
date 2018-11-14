@@ -1,3 +1,5 @@
+import { containsSameItems } from "./array";
+
 class Vote {
   constructor(user, checkpointId, session) {
     this.voter = user;
@@ -67,13 +69,6 @@ export class Session {
     }));
   }
 }
-
-const containsSameItems = (array, anotherArray) => {
-  return array.every(item => {
-    const re = anotherArray.findIndex(an => an === item);
-    return re !== -1;
-  });
-};
 
 export const isApprobeForAll = allMembers => checks =>
   containsSameItems(allMembers, checks);
