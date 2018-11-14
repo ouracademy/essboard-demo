@@ -46,8 +46,25 @@ describe("session", () => {
     });
   });
 
+  describe("voting", () => {
+    beforeEach(() => {
+      session.vote(artmadeit, 11);
+      session.vote(qpdiam, 11);
+    });
+
+    it("should get voters", () => {
+      expect(session.voters).toEqual([artmadeit, qpdiam]);
+    });
+
+    it("should remove a vote", () => {
+      session.removeVote(artmadeit, 11);
+      expect(session.voters).toEqual([qpdiam]);
+    });
+  });
+
   describe("ending session", () => {
     beforeEach(() => {
+      session.vote(artmadeit, 21);
       session.end();
     });
 
@@ -65,5 +82,57 @@ describe("session", () => {
         "Session is finished, no one can vote"
       );
     });
+    it("no one can remove a vote when the session it's already finished", () => {
+      expect(() => session.removeVote(artmadeit, 21)).toThrow(
+        "Session is finished, no one can remove a vote"
+      );
+    });
   });
 });
+
+const times = [
+  new Date(2018, 9, 30),
+  new Date(2018, 10, 1),
+  new Date(2018, 10, 2),
+  new Date(2018, 10, 3),
+  new Date(2018, 10, 4)
+];
+
+// describe("voting", () => {
+//   let session1;
+//   beforeEach(() => {
+//     MockDate.set(times[0]);
+
+//     const project = new Project("ouracademy");
+//     project.join(artmadeit);
+//     project.join(qpdiam);
+
+//     MockDate.set(times[1]);
+//     session1 = project.startNewSession();
+//     session1.vote(artmadeit, 111);
+//     session1.vote(qpdiam, 111);
+//     session1.end();
+
+//   MockDate.set(times[2]);
+//   const session2 = project.startNewSession();
+//   session2.vote(qpdiam, 112);
+//   session2.removeVote(qpdiam, 112);
+//   session2.vote(qpdiam, 112);
+//   session2.vote(artmadeit, 112);
+//   session2.vote(artmadeit, 121);
+//   session2.end();
+
+//   MockDate.set(times[3]);
+//   const session2 = project.startNewSession();
+//   session2.vote(qpdiam, 121);
+//   session2.vote(qpdiam, 122);
+//   session2.vote(artmadeit, 122);
+//   session2.end();
+
+//   MockDate.set(times[4]);
+//   const session2 = project.startNewSession();
+//   session2.vote(artmadeit, 131);
+//   session2.vote(qpdiam, 131);
+//   session2.end();
+//   });
+// });
