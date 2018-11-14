@@ -1,13 +1,9 @@
 class Vote {
   constructor(user, checkpointId, session) {
-    this.user = user;
+    this.voter = user;
     this.checkpointId = checkpointId;
     this.createdAt = new Date();
     this.session = session;
-  }
-
-  get voter() {
-    return this.user;
   }
 }
 
@@ -44,12 +40,12 @@ export class Session {
     if (this.isFinished) throw "Session is finished, no one can remove a vote";
 
     this.totalVotes = this.totalVotes.filter(
-      x => !(x.user === user && x.checkpointId === checkpointId)
+      x => !(x.voter === user && x.checkpointId === checkpointId)
     );
   }
 
   get voters() {
-    return this.totalVotes.map(x => x.user);
+    return this.totalVotes.map(x => x.voter);
   }
 
   getVotesByCheckpoint(state) {
