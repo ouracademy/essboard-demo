@@ -63,6 +63,12 @@ describe("session", () => {
       session.removeVote(artmadeit, 11);
       expect(session.voters).toEqual([qpdiam]);
     });
+
+    it("shouldn't vote if it's not a member", () => {
+      expect(() => session.vote(new User("eli"), 11)).toThrow(
+        "Sorry, eli is not a member"
+      );
+    });
   });
 
   describe("ending session", () => {

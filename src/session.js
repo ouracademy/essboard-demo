@@ -31,6 +31,9 @@ export class Session {
 
   vote(user, checkpointId) {
     if (this.isFinished) throw "Session is finished, no one can vote";
+    if (!this.project.members.includes(user))
+      throw `Sorry, ${user.name} is not a member`;
+
     this.votes.push(new Vote(user, checkpointId, this));
   }
 
