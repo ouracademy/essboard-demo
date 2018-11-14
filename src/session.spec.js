@@ -100,36 +100,32 @@ describe("evaluatedBy", () => {
     project.join(qpdiam);
 
     session = project.startNewSession();
-    session.vote(artmadeit, 111);
-    session.vote(qpdiam, 111);
-    session.vote(qpdiam, 112);
-    session.vote(artmadeit, 112);
-    session.vote(artmadeit, 121);
+    session.vote(artmadeit, "111");
+    session.vote(qpdiam, "111");
+    session.vote(qpdiam, "112");
+    session.vote(artmadeit, "112");
+    session.vote(artmadeit, "121");
     session.end();
   });
 
-  const votes = {
-    "111": [artmadeit, qpdiam],
-    "112": [qpdiam, artmadeit],
-    "121": [artmadeit]
-  };
-
-  it("evaluatedBy() every member", () => {
-    expect(evaluatedBy(stakeholderStates[0], votes, session.voters)).toBe(
-      "every-member"
-    );
+  it("get members by checkpoint", () => {
+    expect(session.membersByCheckpoint).toEqual({
+      "111": [artmadeit, qpdiam],
+      "112": [qpdiam, artmadeit],
+      "121": [artmadeit]
+    });
   });
 
-  it("evaluatedBy() any member", () => {
-    expect(evaluatedBy(stakeholderStates[1], votes, session.voters)).toBe(
-      "any-member"
-    );
+  it("every member", () => {
+    expect(evaluatedBy(stakeholderStates[0], session)).toBe("every-member");
   });
 
-  it("evaluatedBy() no body", () => {
-    expect(evaluatedBy(stakeholderStates[2], votes, session.voters)).toBe(
-      "no-body"
-    );
+  it("any member", () => {
+    expect(evaluatedBy(stakeholderStates[1], session)).toBe("any-member");
+  });
+
+  it("no body", () => {
+    expect(evaluatedBy(stakeholderStates[2], session)).toBe("no-body");
   });
 });
 

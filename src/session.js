@@ -33,6 +33,14 @@ export class Session {
   get voters() {
     return this.votes.map(x => x.user);
   }
+
+  get membersByCheckpoint() {
+    return this.votes.reduce((ac, vote) => {
+      ac[vote.checkpointId] = ac[vote.checkpointId] || [];
+      ac[vote.checkpointId].push(vote.user);
+      return ac;
+    }, {});
+  }
 }
 
 const containsSameItems = (array, anotherArray) => {
@@ -46,13 +54,14 @@ const containsSameItems = (array, anotherArray) => {
 export const isApprobeForAll = allMembers => checks =>
   containsSameItems(allMembers, checks);
 
-export const evaluatedBy = (state, votes, members) => {
+export const evaluatedBy = (state, session) => {
+  const votes = session.membersByCheckpoint;
   const votesByState = Object.keys(votes).filter(byState(state.id));
 
   return votesByState.length === 0
     ? "no-body"
     : containsSameItems(state.checkpoints.map(x => x.id), votesByState) &&
-      votesByState.every(x => isApprobeForAll(members)(votes[x]))
+      votesByState.every(x => isApprobeForAll(session.members)(votes[x]))
     ? "every-member"
     : "any-member";
 };
