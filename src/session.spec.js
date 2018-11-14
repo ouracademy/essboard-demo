@@ -2,6 +2,8 @@
 
 import { Project } from "./project";
 import { artmadeit, qpdiam } from "./project.spec";
+import { stakeholderStates } from "./kernel-test-data";
+import { isApprobeForAll, evaluatedBy, byState } from "./session";
 
 const MockDate = {
   realDate: Date,
@@ -88,6 +90,60 @@ describe("session", () => {
       );
     });
   });
+});
+
+describe("evaluatedBy", () => {
+  let session;
+  beforeEach(() => {
+    const project = new Project("ouracademy");
+    project.join(artmadeit);
+    project.join(qpdiam);
+
+    session = project.startNewSession();
+    session.vote(artmadeit, 111);
+    session.vote(qpdiam, 111);
+    session.vote(qpdiam, 112);
+    session.vote(artmadeit, 112);
+    session.vote(artmadeit, 121);
+    session.end();
+  });
+
+  const votes = {
+    "111": [artmadeit, qpdiam],
+    "112": [qpdiam, artmadeit],
+    "121": [artmadeit]
+  };
+
+  it("evaluatedBy() every member", () => {
+    expect(evaluatedBy(stakeholderStates[0], votes, session.voters)).toBe(
+      "every-member"
+    );
+  });
+
+  it("evaluatedBy() any member", () => {
+    expect(evaluatedBy(stakeholderStates[1], votes, session.voters)).toBe(
+      "any-member"
+    );
+  });
+
+  it("evaluatedBy() no body", () => {
+    expect(evaluatedBy(stakeholderStates[2], votes, session.voters)).toBe(
+      "no-body"
+    );
+  });
+});
+
+test("isApprobeForAll()", () => {
+  const f = isApprobeForAll([artmadeit, qpdiam]);
+  expect(f([artmadeit, qpdiam])).toBeTruthy();
+  expect(f([qpdiam, artmadeit])).toBeTruthy();
+  expect(f([qpdiam])).toBeFalsy();
+});
+
+test("byState()", () => {
+  expect(byState(11)("111")).toBeTruthy();
+  expect(byState(12)("121")).toBeTruthy();
+  expect(byState(11)("131")).toBeFalsy();
 });
 
 const times = [

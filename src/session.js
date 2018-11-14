@@ -1,3 +1,5 @@
+import { artmadeit, qpdiam } from "./project.spec";
+
 export class Session {
   votes = [];
 
@@ -32,3 +34,28 @@ export class Session {
     return this.votes.map(x => x.user);
   }
 }
+
+const containsSameItems = (array, anotherArray) => {
+  const res = array.every(item => {
+    const re = anotherArray.findIndex(an => an === item);
+    return re !== -1;
+  });
+  return res;
+};
+
+export const isApprobeForAll = allMembers => checks =>
+  containsSameItems(allMembers, checks);
+
+export const evaluatedBy = (state, votes, members) => {
+  const votesByState = Object.keys(votes).filter(byState(state.id));
+
+  return votesByState.length === 0
+    ? "no-body"
+    : containsSameItems(state.checkpoints.map(x => x.id), votesByState) &&
+      votesByState.every(x => isApprobeForAll(members)(votes[x]))
+    ? "every-member"
+    : "any-member";
+};
+
+export const byState = state => checkpoint =>
+  state === parseInt(parseInt(checkpoint) / 10);
