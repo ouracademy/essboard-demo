@@ -5,21 +5,7 @@ import { artmadeit, qpdiam } from "./project.spec";
 import { stakeholder } from "./kernel-test-data";
 import { isApprobeForAll, evaluatedBy, byState } from "./session";
 import { User } from "./user";
-
-const MockDate = {
-  realDate: Date,
-  set(date) {
-    /*eslint no-global-assign:off*/
-    global.Date = class extends Date {
-      constructor() {
-        return date;
-      }
-    };
-  },
-  reset() {
-    global.Date = this.realDate;
-  }
-};
+import { MockDate } from "./MockDate";
 
 describe("session", () => {
   let project, session;
