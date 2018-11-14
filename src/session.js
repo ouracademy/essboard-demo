@@ -1,13 +1,5 @@
 import { containsSameItems } from "./array";
-
-class Vote {
-  constructor(user, checkpointId, session) {
-    this.voter = user;
-    this.checkpointId = checkpointId;
-    this.createdAt = new Date();
-    this.session = session;
-  }
-}
+import { Vote } from "./Vote";
 
 export class Session {
   constructor(createdAt, project) {
