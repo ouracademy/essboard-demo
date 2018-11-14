@@ -1,8 +1,13 @@
 class Vote {
-  constructor(user, checkpointId) {
+  constructor(user, checkpointId, session) {
     this.user = user;
     this.checkpointId = checkpointId;
     this.createdAt = new Date();
+    this.session = session;
+  }
+
+  get voter() {
+    return this.user;
   }
 }
 
@@ -17,7 +22,7 @@ export class Session {
 
   end() {
     this.endDate = new Date();
-    this.members = this.project.members;
+    this.members = [...this.project.members];
   }
 
   get isFinished() {
@@ -26,7 +31,7 @@ export class Session {
 
   vote(user, checkpointId) {
     if (this.isFinished) throw "Session is finished, no one can vote";
-    this.votes.push(new Vote(user, checkpointId));
+    this.votes.push(new Vote(user, checkpointId, this));
   }
 
   removeVote(user, checkpointId) {
@@ -50,7 +55,7 @@ export class Session {
   get membersByCheckpoint() {
     return this.totalVotes.reduce((ac, vote) => {
       ac[vote.checkpointId] = ac[vote.checkpointId] || [];
-      ac[vote.checkpointId].push(vote.user);
+      ac[vote.checkpointId].push(vote);
       return ac;
     }, {});
   }
@@ -64,11 +69,10 @@ export class Session {
 }
 
 const containsSameItems = (array, anotherArray) => {
-  const res = array.every(item => {
+  return array.every(item => {
     const re = anotherArray.findIndex(an => an === item);
     return re !== -1;
   });
-  return res;
 };
 
 export const isApprobeForAll = allMembers => checks =>
@@ -81,7 +85,13 @@ export const evaluatedBy = (state, session) => {
   return votesByState.length === 0
     ? "no-body"
     : containsSameItems(state.checkpoints.map(x => x.id), votesByState) &&
-      votesByState.every(x => isApprobeForAll(session.members)(votes[x]))
+      votesByState.every(stat => {
+        const voters = votes[stat].map(x => x.voter);
+
+        return votes[stat].every(vote => {
+          return isApprobeForAll(vote.session.members)(voters);
+        });
+      })
     ? "every-member"
     : "any-member";
 };

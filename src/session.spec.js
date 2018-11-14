@@ -4,6 +4,7 @@ import { Project } from "./project";
 import { artmadeit, qpdiam } from "./project.spec";
 import { stakeholder } from "./kernel-test-data";
 import { isApprobeForAll, evaluatedBy, byState } from "./session";
+import { User } from "./user";
 
 const MockDate = {
   realDate: Date,
@@ -119,12 +120,19 @@ describe("evaluatedBy", () => {
     session.end();
   });
 
-  it("get members by checkpoint", () => {
-    expect(session.membersByCheckpoint).toEqual({
-      "111": [artmadeit, qpdiam],
-      "112": [qpdiam, artmadeit],
-      "121": [artmadeit]
-    });
+  it("get votes by checkpoint", () => {
+    const votesByCheckpoint = session.membersByCheckpoint;
+    expect(votesByCheckpoint["111"].map(x => x.voter)).toEqual([
+      artmadeit,
+      qpdiam
+    ]);
+
+    expect(votesByCheckpoint["112"].map(x => x.voter)).toEqual([
+      qpdiam,
+      artmadeit
+    ]);
+
+    expect(votesByCheckpoint["121"].map(x => x.voter)).toEqual([artmadeit]);
   });
 
   it("every member", () => {
@@ -224,7 +232,21 @@ describe("voting", () => {
         { evaluatedBy: "any-member", id: 13 }
       ]
     ]
-  ])("should consume alpha information for session #", (n, expected) => {
+  ])("should consume alpha information for session %i", (n, expected) => {
     expect(project.sessions[n - 1].alphaStates(stakeholder)).toEqual(expected);
+  });
+
+  it("should don't alterate past alpha states when a member is joined", () => {
+    const eli = new User("eli");
+    project.join(eli);
+    const session5 = project.startNewSession();
+    session5.vote(eli, 131);
+    session5.end();
+
+    expect(session5.alphaStates(stakeholder)).toEqual([
+      { evaluatedBy: "every-member", id: 11 },
+      { evaluatedBy: "every-member", id: 12 },
+      { evaluatedBy: "any-member", id: 13 }
+    ]);
   });
 });
