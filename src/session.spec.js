@@ -2,7 +2,7 @@
 
 import { Project } from "./project";
 import { artmadeit, qpdiam } from "./project.spec";
-import { stakeholderStates } from "./kernel-test-data";
+import { stakeholder } from "./kernel-test-data";
 import { isApprobeForAll, evaluatedBy, byState } from "./session";
 
 const MockDate = {
@@ -128,15 +128,15 @@ describe("evaluatedBy", () => {
   });
 
   it("every member", () => {
-    expect(evaluatedBy(stakeholderStates[0], session)).toBe("every-member");
+    expect(evaluatedBy(stakeholder.states[0], session)).toBe("every-member");
   });
 
   it("any member", () => {
-    expect(evaluatedBy(stakeholderStates[1], session)).toBe("any-member");
+    expect(evaluatedBy(stakeholder.states[1], session)).toBe("any-member");
   });
 
   it("no body", () => {
-    expect(evaluatedBy(stakeholderStates[2], session)).toBe("no-body");
+    expect(evaluatedBy(stakeholder.states[2], session)).toBe("no-body");
   });
 });
 
@@ -161,58 +161,58 @@ const times = [
   new Date(2018, 10, 4)
 ];
 
-// describe("voting", () => {
-//   let session2;
-//   beforeEach(() => {
-//     MockDate.set(times[0]);
+describe("voting", () => {
+  let session2;
+  beforeEach(() => {
+    MockDate.set(times[0]);
 
-//     const project = new Project("ouracademy");
-//     project.join(artmadeit);
-//     project.join(qpdiam);
+    const project = new Project("ouracademy");
+    project.join(artmadeit);
+    project.join(qpdiam);
 
-//     MockDate.set(times[1]);
-//     const session1 = project.startNewSession();
-//     session1.vote(artmadeit, 111);
-//     session1.vote(qpdiam, 111);
-//     session1.end();
+    MockDate.set(times[1]);
+    const session1 = project.startNewSession();
+    session1.vote(artmadeit, 111);
+    session1.vote(qpdiam, 111);
+    session1.end();
 
-//     MockDate.set(times[2]);
-//     session2 = project.startNewSession();
-//     session2.vote(qpdiam, 112);
-//     session2.removeVote(qpdiam, 112);
-//     session2.vote(qpdiam, 112);
-//     session2.vote(artmadeit, 112);
-//     session2.vote(artmadeit, 121);
-//     session2.end();
+    MockDate.set(times[2]);
+    session2 = project.startNewSession();
+    session2.vote(qpdiam, 112);
+    session2.removeVote(qpdiam, 112);
+    session2.vote(qpdiam, 112);
+    session2.vote(artmadeit, 112);
+    session2.vote(artmadeit, 121);
+    session2.end();
 
-//     MockDate.set(times[3]);
-//     const session3 = project.startNewSession();
-//     session3.vote(qpdiam, 121);
-//     session3.vote(qpdiam, 122);
-//     session3.vote(artmadeit, 122);
-//     session3.end();
+    MockDate.set(times[3]);
+    const session3 = project.startNewSession();
+    session3.vote(qpdiam, 121);
+    session3.vote(qpdiam, 122);
+    session3.vote(artmadeit, 122);
+    session3.end();
 
-//     MockDate.set(times[4]);
-//     const session4 = project.startNewSession();
-//     session4.vote(artmadeit, 131);
-//     session4.vote(qpdiam, 131);
-//     session4.end();
-//   });
+    MockDate.set(times[4]);
+    const session4 = project.startNewSession();
+    session4.vote(artmadeit, 131);
+    session4.vote(qpdiam, 131);
+    session4.end();
+  });
 
-//   it("should consume alpha information for session 2", async function() {
-//     expect(session2.alphaStates).toBe([
-//       {
-//         evaluatedBy: "every-member",
-//         id: 11
-//       },
-//       {
-//         evaluatedBy: "any-member",
-//         id: 12
-//       },
-//       {
-//         evaluatedBy: "no-body",
-//         id: 13
-//       }
-//     ]);
-//   });
-// });
+  it("should consume alpha information for session 2", async function() {
+    expect(session2.alphaStates(stakeholder)).toEqual([
+      {
+        evaluatedBy: "every-member",
+        id: 11
+      },
+      {
+        evaluatedBy: "any-member",
+        id: 12
+      },
+      {
+        evaluatedBy: "no-body",
+        id: 13
+      }
+    ]);
+  });
+});

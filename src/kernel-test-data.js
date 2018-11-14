@@ -24,4 +24,4 @@ export const kernel = {
   ]
 };
 
-export const stakeholderStates = kernel.alphas[0].states;
+export const stakeholder = kernel.alphas[0];

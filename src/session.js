@@ -1,4 +1,10 @@
-import { artmadeit, qpdiam } from "./project.spec";
+class Vote {
+  constructor(user, checkpointId) {
+    this.user = user;
+    this.checkpointId = checkpointId;
+    this.createdAt = new Date();
+  }
+}
 
 export class Session {
   votes = [];
@@ -20,7 +26,7 @@ export class Session {
 
   vote(user, checkpointId) {
     if (this.isFinished) throw "Session is finished, no one can vote";
-    this.votes.push({ user, checkpointId, createdAt: new Date() });
+    this.votes.push(new Vote(user, checkpointId));
   }
 
   removeVote(user, checkpointId) {
@@ -35,16 +41,27 @@ export class Session {
     return this.votes.map(x => x.user);
   }
 
+  get totalVotes() {
+    if (this.previousSession) {
+      return [...this.previousSession.totalVotes, ...this.votes];
+    } else {
+      return this.votes;
+    }
+  }
+
   get membersByCheckpoint() {
-    return this.votes.reduce((ac, vote) => {
+    return this.totalVotes.reduce((ac, vote) => {
       ac[vote.checkpointId] = ac[vote.checkpointId] || [];
       ac[vote.checkpointId].push(vote.user);
       return ac;
     }, {});
   }
 
-  get alphaStates() {
-    return null;
+  alphaStates(alpha) {
+    return alpha.states.map(state => ({
+      evaluatedBy: evaluatedBy(state, this),
+      id: state.id
+    }));
   }
 }
 
