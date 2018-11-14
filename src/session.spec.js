@@ -127,7 +127,7 @@ describe("evaluatedBy", () => {
   });
 
   it("get votes by checkpoint", () => {
-    const votesByCheckpoint = session.membersByCheckpoint;
+    const votesByCheckpoint = session.getVotesByCheckpoint();
     expect(votesByCheckpoint["111"].map(x => x.voter)).toEqual([
       artmadeit,
       qpdiam

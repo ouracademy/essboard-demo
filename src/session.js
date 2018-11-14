@@ -52,8 +52,12 @@ export class Session {
     return this.totalVotes.map(x => x.user);
   }
 
-  get membersByCheckpoint() {
-    return this.totalVotes.reduce((ac, vote) => {
+  getVotesByCheckpoint(state) {
+    const votes = state
+      ? this.totalVotes.filter(vote => byState(state.id)(vote.checkpointId))
+      : this.totalVotes;
+
+    return votes.reduce((ac, vote) => {
       ac[vote.checkpointId] = ac[vote.checkpointId] || [];
       ac[vote.checkpointId].push(vote);
       return ac;
@@ -79,16 +83,16 @@ export const isApprobeForAll = allMembers => checks =>
   containsSameItems(allMembers, checks);
 
 export const evaluatedBy = (state, session) => {
-  const votes = session.membersByCheckpoint;
-  const votesByState = Object.keys(votes).filter(byState(state.id));
+  const votesByCheckpoint = session.getVotesByCheckpoint(state);
+  const checkpoints = Object.keys(votesByCheckpoint);
 
-  return votesByState.length === 0
+  return checkpoints.length === 0
     ? "no-body"
-    : containsSameItems(state.checkpoints.map(x => x.id), votesByState) &&
-      votesByState.every(stat => {
-        const voters = votes[stat].map(x => x.voter);
+    : containsSameItems(state.checkpoints.map(x => x.id), checkpoints) &&
+      checkpoints.every(checkpoint => {
+        const voters = votesByCheckpoint[checkpoint].map(x => x.voter);
 
-        return votes[stat].every(vote => {
+        return votesByCheckpoint[checkpoint].every(vote => {
           return isApprobeForAll(vote.session.members)(voters);
         });
       })
