@@ -162,11 +162,11 @@ const times = [
 ];
 
 describe("voting", () => {
-  let session2;
+  let project;
   beforeEach(() => {
     MockDate.set(times[0]);
 
-    const project = new Project("ouracademy");
+    project = new Project("ouracademy");
     project.join(artmadeit);
     project.join(qpdiam);
 
@@ -177,7 +177,7 @@ describe("voting", () => {
     session1.end();
 
     MockDate.set(times[2]);
-    session2 = project.startNewSession();
+    const session2 = project.startNewSession();
     session2.vote(qpdiam, 112);
     session2.removeVote(qpdiam, 112);
     session2.vote(qpdiam, 112);
@@ -199,20 +199,32 @@ describe("voting", () => {
     session4.end();
   });
 
-  it("should consume alpha information for session 2", async function() {
-    expect(session2.alphaStates(stakeholder)).toEqual([
-      {
-        evaluatedBy: "every-member",
-        id: 11
-      },
-      {
-        evaluatedBy: "any-member",
-        id: 12
-      },
-      {
-        evaluatedBy: "no-body",
-        id: 13
-      }
-    ]);
+  it.each([
+    [
+      2,
+      [
+        { evaluatedBy: "every-member", id: 11 },
+        { evaluatedBy: "any-member", id: 12 },
+        { evaluatedBy: "no-body", id: 13 }
+      ]
+    ],
+    [
+      3,
+      [
+        { evaluatedBy: "every-member", id: 11 },
+        { evaluatedBy: "every-member", id: 12 },
+        { evaluatedBy: "no-body", id: 13 }
+      ]
+    ],
+    [
+      4,
+      [
+        { evaluatedBy: "every-member", id: 11 },
+        { evaluatedBy: "every-member", id: 12 },
+        { evaluatedBy: "any-member", id: 13 }
+      ]
+    ]
+  ])("should consume alpha information for session #", (n, expected) => {
+    expect(project.sessions[n - 1].alphaStates(stakeholder)).toEqual(expected);
   });
 });

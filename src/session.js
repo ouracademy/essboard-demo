@@ -42,11 +42,9 @@ export class Session {
   }
 
   get totalVotes() {
-    if (this.previousSession) {
-      return [...this.previousSession.totalVotes, ...this.votes];
-    } else {
-      return this.votes;
-    }
+    return this.previousSession
+      ? [...this.previousSession.totalVotes, ...this.votes]
+      : this.votes;
   }
 
   get membersByCheckpoint() {
