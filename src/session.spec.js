@@ -90,6 +90,17 @@ describe("session", () => {
       );
     });
   });
+
+  describe("previousSession", () => {
+    test("must be undefined if is 1st session", () => {
+      expect(session.previousSession).toBe(undefined);
+    });
+    test("must be last session", () => {
+      session.end();
+      const newSession = project.startNewSession();
+      expect(newSession.previousSession).toBe(session);
+    });
+  });
 });
 
 describe("evaluatedBy", () => {
@@ -151,7 +162,7 @@ const times = [
 ];
 
 // describe("voting", () => {
-//   let session1;
+//   let session2;
 //   beforeEach(() => {
 //     MockDate.set(times[0]);
 
@@ -160,31 +171,48 @@ const times = [
 //     project.join(qpdiam);
 
 //     MockDate.set(times[1]);
-//     session1 = project.startNewSession();
+//     const session1 = project.startNewSession();
 //     session1.vote(artmadeit, 111);
 //     session1.vote(qpdiam, 111);
 //     session1.end();
 
-//   MockDate.set(times[2]);
-//   const session2 = project.startNewSession();
-//   session2.vote(qpdiam, 112);
-//   session2.removeVote(qpdiam, 112);
-//   session2.vote(qpdiam, 112);
-//   session2.vote(artmadeit, 112);
-//   session2.vote(artmadeit, 121);
-//   session2.end();
+//     MockDate.set(times[2]);
+//     session2 = project.startNewSession();
+//     session2.vote(qpdiam, 112);
+//     session2.removeVote(qpdiam, 112);
+//     session2.vote(qpdiam, 112);
+//     session2.vote(artmadeit, 112);
+//     session2.vote(artmadeit, 121);
+//     session2.end();
 
-//   MockDate.set(times[3]);
-//   const session2 = project.startNewSession();
-//   session2.vote(qpdiam, 121);
-//   session2.vote(qpdiam, 122);
-//   session2.vote(artmadeit, 122);
-//   session2.end();
+//     MockDate.set(times[3]);
+//     const session3 = project.startNewSession();
+//     session3.vote(qpdiam, 121);
+//     session3.vote(qpdiam, 122);
+//     session3.vote(artmadeit, 122);
+//     session3.end();
 
-//   MockDate.set(times[4]);
-//   const session2 = project.startNewSession();
-//   session2.vote(artmadeit, 131);
-//   session2.vote(qpdiam, 131);
-//   session2.end();
+//     MockDate.set(times[4]);
+//     const session4 = project.startNewSession();
+//     session4.vote(artmadeit, 131);
+//     session4.vote(qpdiam, 131);
+//     session4.end();
+//   });
+
+//   it("should consume alpha information for session 2", async function() {
+//     expect(session2.alphaStates).toBe([
+//       {
+//         evaluatedBy: "every-member",
+//         id: 11
+//       },
+//       {
+//         evaluatedBy: "any-member",
+//         id: 12
+//       },
+//       {
+//         evaluatedBy: "no-body",
+//         id: 13
+//       }
+//     ]);
 //   });
 // });

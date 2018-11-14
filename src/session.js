@@ -6,6 +6,7 @@ export class Session {
   constructor(createdAt, project) {
     this.createdAt = createdAt;
     this.project = project;
+    this.previousSession = this.project.currentSession;
   }
 
   end() {
@@ -40,6 +41,10 @@ export class Session {
       ac[vote.checkpointId].push(vote.user);
       return ac;
     }, {});
+  }
+
+  get alphaStates() {
+    return null;
   }
 }
 
