@@ -12,12 +12,15 @@ class Vote {
 }
 
 export class Session {
-  votes = [];
-
   constructor(createdAt, project) {
     this.createdAt = createdAt;
     this.project = project;
     this.previousSession = this.project.currentSession;
+    this.totalVotes = this.getTotalVotes();
+  }
+
+  getTotalVotes() {
+    return this.previousSession ? [...this.previousSession.totalVotes] : [];
   }
 
   end() {
@@ -34,25 +37,19 @@ export class Session {
     if (!this.project.members.includes(user))
       throw `Sorry, ${user.name} is not a member`;
 
-    this.votes.push(new Vote(user, checkpointId, this));
+    this.totalVotes.push(new Vote(user, checkpointId, this));
   }
 
   removeVote(user, checkpointId) {
     if (this.isFinished) throw "Session is finished, no one can remove a vote";
 
-    this.votes = this.votes.filter(
+    this.totalVotes = this.totalVotes.filter(
       x => !(x.user === user && x.checkpointId === checkpointId)
     );
   }
 
   get voters() {
-    return this.votes.map(x => x.user);
-  }
-
-  get totalVotes() {
-    return this.previousSession
-      ? [...this.previousSession.totalVotes, ...this.votes]
-      : this.votes;
+    return this.totalVotes.map(x => x.user);
   }
 
   get membersByCheckpoint() {

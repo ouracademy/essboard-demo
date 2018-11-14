@@ -175,7 +175,7 @@ const times = [
   new Date(2018, 10, 4)
 ];
 
-describe("voting", () => {
+describe("alphaStates()", () => {
   let project;
   beforeEach(() => {
     MockDate.set(times[0]);
@@ -213,6 +213,12 @@ describe("voting", () => {
     session4.end();
   });
 
+  const stateIn3rdSession = [
+    { evaluatedBy: "every-member", id: 11 },
+    { evaluatedBy: "every-member", id: 12 },
+    { evaluatedBy: "no-body", id: 13 }
+  ];
+
   it.each([
     [
       2,
@@ -222,14 +228,7 @@ describe("voting", () => {
         { evaluatedBy: "no-body", id: 13 }
       ]
     ],
-    [
-      3,
-      [
-        { evaluatedBy: "every-member", id: 11 },
-        { evaluatedBy: "every-member", id: 12 },
-        { evaluatedBy: "no-body", id: 13 }
-      ]
-    ],
+    [3, stateIn3rdSession],
     [
       4,
       [
@@ -243,6 +242,12 @@ describe("voting", () => {
   });
 
   describe("shouldn't alterate past alpha states", () => {
+    afterEach(() => {
+      expect(project.sessions[2].alphaStates(stakeholder)).toEqual(
+        stateIn3rdSession
+      );
+    });
+
     it("when past alpha states when a member is joined", () => {
       const eli = new User("eli");
       project.join(eli);
@@ -268,6 +273,16 @@ describe("voting", () => {
         { evaluatedBy: "every-member", id: 12 },
         { evaluatedBy: "every-member", id: 13 }
       ]);
+    });
+
+    it("when removing a vote", () => {
+      // sadly the PO changed ..so Stakeholder is in Represented state
+      const session5 = project.startNewSession();
+      session5.removeVote(qpdiam, 131);
+      session5.removeVote(artmadeit, 131);
+      session5.end();
+
+      expect(session5.alphaStates(stakeholder)).toEqual(stateIn3rdSession);
     });
   });
 });
