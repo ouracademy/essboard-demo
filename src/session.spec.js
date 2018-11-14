@@ -3,17 +3,27 @@
 import { Project } from "./project";
 import { artmadeit, qpdiam } from "./project.spec";
 
-describe("session", () => {
-  let project, session;
-  const mockedCurrentDate = new Date("2017-06-13T04:41:20");
-
-  beforeEach(() => {
+const MockDate = {
+  realDate: Date,
+  set(date) {
     /*eslint no-global-assign:off*/
-    Date = class extends Date {
+    global.Date = class extends Date {
       constructor() {
-        return mockedCurrentDate;
+        return date;
       }
     };
+  },
+  reset() {
+    global.Date = this.realDate;
+  }
+};
+
+describe("session", () => {
+  let project, session;
+  const currentDate = new Date("2017-06-13T04:41:20");
+
+  beforeEach(() => {
+    MockDate.set(currentDate);
 
     project = new Project("ouracademy");
     session = project.startNewSession();
@@ -21,9 +31,13 @@ describe("session", () => {
     project.join(qpdiam);
   });
 
+  afterEach(() => {
+    MockDate.reset();
+  });
+
   describe("start new session", () => {
     it("should start a new session with current date", () => {
-      expect(session.createdAt).toEqual(mockedCurrentDate);
+      expect(session.createdAt).toEqual(currentDate);
     });
     it("shouldn't create a session when the current session doesn't finished", () => {
       expect(() => project.startNewSession()).toThrow(
@@ -38,7 +52,7 @@ describe("session", () => {
     });
 
     it("should set end date & finish the session", () => {
-      expect(session.endDate).toBe(mockedCurrentDate);
+      expect(session.endDate).toBe(currentDate);
       expect(session.isFinished).toBeTruthy();
     });
 
