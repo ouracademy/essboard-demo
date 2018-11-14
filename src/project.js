@@ -26,7 +26,7 @@ export class Project extends WithName {
     if (this.sessions.length > 0 && !this.currentSession.isFinished)
       throw "There's already a current that doesn't finished";
 
-    const newSession = new Session(new Date(), this);
+    const newSession = new Session(this);
     this.sessions.push(newSession);
     return newSession;
   }

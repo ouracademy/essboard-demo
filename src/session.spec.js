@@ -114,17 +114,17 @@ describe("evaluatedBy", () => {
 
   it("get votes by checkpoint", () => {
     const votesByCheckpoint = session.getVotesByCheckpoint();
-    expect(votesByCheckpoint["111"].map(x => x.voter)).toEqual([
-      artmadeit,
-      qpdiam
-    ]);
+    // in order to make more easy the test
+    const result = votesByCheckpoint.map(x => ({
+      checkpointId: x.checkpointId,
+      voters: x.votes.map(v => v.voter)
+    }));
 
-    expect(votesByCheckpoint["112"].map(x => x.voter)).toEqual([
-      qpdiam,
-      artmadeit
+    expect(result).toEqual([
+      { checkpointId: "111", voters: [artmadeit, qpdiam] },
+      { checkpointId: "112", voters: [qpdiam, artmadeit] },
+      { checkpointId: "121", voters: [artmadeit] }
     ]);
-
-    expect(votesByCheckpoint["121"].map(x => x.voter)).toEqual([artmadeit]);
   });
 
   it("every member", () => {
@@ -172,30 +172,30 @@ describe("alphaStates()", () => {
 
     MockDate.set(times[1]);
     const session1 = project.startNewSession();
-    session1.vote(artmadeit, 111);
-    session1.vote(qpdiam, 111);
+    session1.vote(artmadeit, "111");
+    session1.vote(qpdiam, "111");
     session1.end();
 
     MockDate.set(times[2]);
     const session2 = project.startNewSession();
-    session2.vote(qpdiam, 112);
-    session2.removeVote(qpdiam, 112);
-    session2.vote(qpdiam, 112);
-    session2.vote(artmadeit, 112);
-    session2.vote(artmadeit, 121);
+    session2.vote(qpdiam, "112");
+    session2.removeVote(qpdiam, "112");
+    session2.vote(qpdiam, "112");
+    session2.vote(artmadeit, "112");
+    session2.vote(artmadeit, "121");
     session2.end();
 
     MockDate.set(times[3]);
     const session3 = project.startNewSession();
-    session3.vote(qpdiam, 121);
-    session3.vote(qpdiam, 122);
-    session3.vote(artmadeit, 122);
+    session3.vote(qpdiam, "121");
+    session3.vote(qpdiam, "122");
+    session3.vote(artmadeit, "122");
     session3.end();
 
     MockDate.set(times[4]);
     const session4 = project.startNewSession();
-    session4.vote(artmadeit, 131);
-    session4.vote(qpdiam, 131);
+    session4.vote(artmadeit, "131");
+    session4.vote(qpdiam, "131");
     session4.end();
   });
 
@@ -238,7 +238,7 @@ describe("alphaStates()", () => {
       const eli = new User("eli");
       project.join(eli);
       const session5 = project.startNewSession();
-      session5.vote(eli, 131);
+      session5.vote(eli, "131");
       session5.end();
 
       expect(session5.alphaStates(stakeholder)).toEqual([
@@ -251,7 +251,7 @@ describe("alphaStates()", () => {
     it("when a member is removed", () => {
       const session5 = project.startNewSession();
       project.removeMember(artmadeit);
-      session5.vote(qpdiam, 132);
+      session5.vote(qpdiam, "132");
       session5.end();
 
       expect(session5.alphaStates(stakeholder)).toEqual([
@@ -264,8 +264,8 @@ describe("alphaStates()", () => {
     it("when removing a vote", () => {
       // sadly the PO changed ..so Stakeholder is in Represented state
       const session5 = project.startNewSession();
-      session5.removeVote(qpdiam, 131);
-      session5.removeVote(artmadeit, 131);
+      session5.removeVote(qpdiam, "131");
+      session5.removeVote(artmadeit, "131");
       session5.end();
 
       expect(session5.alphaStates(stakeholder)).toEqual(stateIn3rdSession);

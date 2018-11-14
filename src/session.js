@@ -2,8 +2,8 @@ import { containsSameItems } from "./array";
 import { Vote } from "./Vote";
 
 export class Session {
-  constructor(createdAt, project) {
-    this.createdAt = createdAt;
+  constructor(project) {
+    this.createdAt = new Date();
     this.project = project;
     this.previousSession = this.project.currentSession;
     this.totalVotes = this.getTotalVotes();
@@ -48,10 +48,19 @@ export class Session {
       : this.totalVotes;
 
     return votes.reduce((ac, vote) => {
-      ac[vote.checkpointId] = ac[vote.checkpointId] || [];
-      ac[vote.checkpointId].push(vote);
+      const index = ac.findIndex(x => x.checkpointId === vote.checkpointId);
+
+      if (index !== -1) {
+        ac[index].votes.push(vote);
+      } else {
+        ac.push({
+          checkpointId: vote.checkpointId,
+          votes: [vote]
+        });
+      }
+
       return ac;
-    }, {});
+    }, []);
   }
 
   alphaStates(alpha) {
@@ -67,18 +76,22 @@ export const isApprobeForAll = allMembers => checks =>
 
 export const evaluatedBy = (state, session) => {
   const votesByCheckpoint = session.getVotesByCheckpoint(state);
-  const checkpoints = Object.keys(votesByCheckpoint);
 
-  return checkpoints.length === 0
+  return votesByCheckpoint.map(x => x.checkpointId).length === 0
     ? "no-body"
-    : containsSameItems(state.checkpoints.map(x => x.id), checkpoints) &&
-      checkpoints.every(checkpoint => {
-        const voters = votesByCheckpoint[checkpoint].map(x => x.voter);
+    : containsSameItems(
+        state.checkpoints.map(x => x.id),
+        votesByCheckpoint.map(x => x.checkpointId)
+      ) &&
+      votesByCheckpoint
+        .map(x => x.votes)
+        .every(votes => {
+          const voters = votes.map(x => x.voter);
 
-        return votesByCheckpoint[checkpoint].every(vote => {
-          return isApprobeForAll(vote.session.members)(voters);
-        });
-      })
+          return votes.every(vote => {
+            return isApprobeForAll(vote.session.members)(voters);
+          });
+        })
     ? "every-member"
     : "any-member";
 };
