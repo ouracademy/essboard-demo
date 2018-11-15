@@ -44,13 +44,15 @@ const votes = [
   }
 ];
 
-createProject("diana", "intento15").then(projectId => {
+createProject("diana", "intento18").then(projectId => {
   addMember(projectId, "arthur");
   createSession(1, projectId);
   votes.forEach(vote => {
     const { action, from, checkPointId, stateId, date } = vote;
     addEvent(1, projectId, { action, from, checkPointId, stateId, date });
   });
-  getStatusBySession(1, projectId);
+  getStatusBySession(1, projectId, status => {
+    console.log(status);
+  });
   //endSession(1, projectId);
 });

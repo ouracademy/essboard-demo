@@ -10,7 +10,7 @@ octokit.authenticate({
 });
 export const octoKitAuthenticated = octokit;
 
-// TODO: ask diana unused?
+// TODO: ask diana unused ?
 export function getCommit(commit_sha) {
   octokit.gitdata
     .getCommit({
@@ -22,6 +22,16 @@ export function getCommit(commit_sha) {
       console.log(result["data"]);
     })
     .catch(err => console.log(err));
+}
+
+export function createFile(path, content) {
+  return octoKitAuthenticated.repos.createFile({
+    owner: account.owner,
+    repo: account.repo,
+    path,
+    message: "init monitoring",
+    content: btoa(JSON.stringify(content))
+  });
 }
 
 export function getContentFrom(file_sha) {

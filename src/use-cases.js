@@ -2,40 +2,32 @@ const { btoa } = require("abab");
 import { generateKey, Status } from "./util";
 import { membersDb, changesDb, projectsDb, sessionsDb, eventsDb } from "./repo";
 import { account } from "./config";
-import { octoKitAuthenticated, getContentFrom, update } from "./git-client";
+import { getContentFrom, update, createFile } from "./git-client";
 
 export function createProject(owner, name) {
   const key = generateKey(name);
   const status = { states: [] };
   const path = key + ".json";
 
-  return octoKitAuthenticated.repos
-    .createFile({
-      owner: account.owner,
-      repo: account.repo,
-      path,
-      message: "init monitoring",
-      content: btoa(JSON.stringify(status))
-    })
-    .then(result => {
-      const contentSha = result["data"]["content"]["sha"];
+  return createFile(path, status).then(result => {
+    const contentSha = result["data"]["content"]["sha"];
 
-      projectsDb.insert({
-        name,
-        status,
-        key,
-        path,
-        lastSnapshot: contentSha
-      });
-      addMember(key, owner, "owner");
-      changesDb.insert({
-        project: key,
-        contentSha,
-        reason: "init",
-        session: null
-      });
-      return key;
+    projectsDb.insert({
+      name,
+      status,
+      key,
+      path,
+      lastSnapshot: contentSha
     });
+    addMember(key, owner, "owner");
+    changesDb.insert({
+      project: key,
+      contentSha,
+      reason: "init",
+      session: null
+    });
+    return key;
+  });
 }
 
 export function addMember(projectKey, name, role = "colaborator") {
@@ -46,11 +38,12 @@ export function addMember(projectKey, name, role = "colaborator") {
   });
 }
 
-export function createSession(num, projectId) {
+export function createSession(num, projectId, snapshot = null) {
   sessionsDb.insert({
     projectId,
     num,
-    snapshot: null
+    snapshot,
+    endDate: null
   });
 }
 
@@ -62,22 +55,26 @@ export function addEvent(sessionNum, projectId, event) {
   });
 }
 
-export function getStatusBySession(sessionNum, projectId) {
+export function getStatusBySession(sessionNum, projectId, callBack) {
   sessionsDb.find({ num: sessionNum, projectId }, function(err, sessions) {
     const session = sessions[0];
-    eventsDb
-      .find({ session: sessionNum, projectId })
-      .sort({ createdAt: 1 })
-      .exec(function(err, events) {
-        const initialStatus = session.lastSnapshot
-          ? getContentFrom(session.lastSnapshot)
-          : Promise.resolve(null);
-        return initialStatus.then(initial => {
-          let status = new Status(initial);
-          status.setEvents(events);
-          console.log(JSON.stringify(status.getValue()));
-        });
-      });
+    const statusPromise = session.snapshot
+      ? getContentFrom(session.snapshot)
+      : Promise.resolve(null);
+    statusPromise.then(status => {
+      if (session.endDate) {
+        callBack(status);
+      } else {
+        eventsDb
+          .find({ session: sessionNum, projectId })
+          .sort({ createdAt: 1 })
+          .exec(function(err, events) {
+            let status = new Status(status);
+            status.setEvents(events);
+            callBack(status.getValue());
+          });
+      }
+    });
   });
 }
 
