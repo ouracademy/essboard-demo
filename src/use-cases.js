@@ -6,6 +6,7 @@ import {
   changesDb,
   projectsDb,
   sessionsDb,
+  eventsDb,
   getContentFrom,
   update,
   Status
@@ -47,21 +48,54 @@ export function addMember(projectKey, memberName) {
     role: "colaborator"
   });
 }
-export function createSession(projectId, num) {
+export function createSession(num, projectId) {
   sessionsDb.insert({
     projectId,
     num,
-    reference: null
+    snapshot: null
   });
 }
 export function addEvent(sessionNum, projectId, event) {
-  sessionsDb.insert({
-    session: numSession,
+  eventsDb.insert({
+    session: sessionNum,
     projectId,
     event
   });
 }
-export function getStatusBySession(sessionNum, projectId) {}
+export function getStatusBySession(sessionNum, projectId) {
+  sessionsDb.find({ num: sessionNum, projectId }, function(err, sessions) {
+    const session = sessions[0];
+    eventsDb
+      .find({ session: sessionNum, projectId })
+      .sort({ createdAt: 1 })
+      .exec(function(err, events) {
+        const initialStatus = session.lastSnapshot
+          ? getContentFrom(session.lastSnapshot)
+          : Promise.resolve(null);
+        return initialStatus.then(initial => {
+          let status = new Status(initial);
+          status.setEvents(events);
+          console.log(JSON.stringify(status.getValue()));
+        });
+      });
+  });
+}
+
+export function getCurrentState(projectId) {
+  return projectsDb.find({ projectId }, function(err, projects) {
+    const project = projects[0];
+
+    return eventsDb.find({ session: sessionNum, projectId }, function(
+      err,
+      events
+    ) {
+      const initialStatus = project.status;
+      let status = new Status(initialStatus);
+      status.setEvents(events);
+      return status.getValue();
+    });
+  });
+}
 export function endSession(sessionNum, projectId) {}
 
 export function addVotes(projectKey, votes, sessionNumber) {
@@ -74,7 +108,7 @@ export function addVotes(projectKey, votes, sessionNumber) {
     const lastChange = project["lastSnapshot"];
     getContentFrom(lastChange).then(content => {
       let status = new Status(content);
-      status.addVotes(votes);
+      status.setEvents(votes);
       update(status.getValue(), lastChange, project["path"])
         .then(result => {
           const change = result["data"]["content"]["sha"];

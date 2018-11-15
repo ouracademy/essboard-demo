@@ -20,7 +20,6 @@ export function getContentFrom(file_sha) {
     .getBlob({ owner: account.owner, repo: account.repo, file_sha })
     .then(result => {
       const value = JSON.parse(atob(result["data"]["content"]));
-      console.log(JSON.stringify(value));
       return value;
     })
     .catch(err => console.log(err));
@@ -52,16 +51,17 @@ export function getCommit(commit_sha) {
 export class Status {
   status;
   constructor(status) {
-    this.status = status;
+    this.status = status || { states: [] };
   }
   getValue() {
+    //calculate here add every nobody
     return this.status;
   }
-  addVotes(votes) {
-    for (let i = 0; i < votes.length; i++) {
-      const { from, stateId, checkPointId, date } = votes[i];
+  setEvents(events) {
+    for (let i = 0; i < events.length; i++) {
+      const { action, from, stateId, checkPointId, date } = events[i]["event"];
       const { index, state } = this.getState(stateId);
-      state.addVote(from, checkPointId, date);
+      state.setEvent(action, from, checkPointId, date);
       this.status.states[index] = state.getValue();
     }
   }
@@ -77,33 +77,41 @@ export class Status {
     }
     return { index, state: new State(this.status.states[index]) };
   }
-  removeVote(from, stateId, checkPointId, date) {}
 }
 export class State {
   value;
   constructor(value) {
     this.value = value;
-    this.value["checkpoints"] = [];
   }
   getValue() {
     return this.value;
   }
-  addVote(from, checkpointId, date) {
+  setEvent(action, from, checkpointId, date) {
     const index = this.value.checkpoints.findIndex(
       check => check.id === checkpointId
     );
-
+    //arreglar esto
     if (index >= 0) {
       if (
-        this.value.checkpoints[index].voters.find(vote => vote.voter === from)
+        this.value.checkpoints[index].voters.find(
+          vote => vote.voter === from
+        ) &&
+        action === "add"
       ) {
         return;
       }
-      this.value.checkpoints[index].voters.push({
-        voter: from,
-        date
-      });
+      if (action === "remove") {
+        this.value.checkpoints[index].voters = this.value.checkpoints[
+          index
+        ].voters.filter(vote => vote.voter !== from);
+      } else {
+        this.value.checkpoints[index].voters.push({
+          voter: from,
+          date
+        });
+      }
     } else {
+      if (action === "remove") return;
       this.value.checkpoints.push({
         id: checkpointId,
         voters: [{ voter: from, date }]
@@ -130,6 +138,11 @@ export const membersDb = new Datastore({
 });
 export const sessionsDb = new Datastore({
   filename: "data/sessions",
+  autoload: true,
+  timestampData: true
+});
+export const eventsDb = new Datastore({
+  filename: "data/events",
   autoload: true,
   timestampData: true
 });
