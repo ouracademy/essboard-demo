@@ -4,7 +4,8 @@ import {
   addMember,
   addEvent,
   createSession,
-  getStatusBySession
+  getStatusBySession,
+  endSession
 } from "./use-cases";
 const votes = [
   {
@@ -44,7 +45,7 @@ const votes = [
   }
 ];
 
-createProject("diana", "intento18").then(projectId => {
+createProject("diana", "intento23").then(projectId => {
   addMember(projectId, "arthur");
   createSession(1, projectId);
   votes.forEach(vote => {
@@ -54,5 +55,8 @@ createProject("diana", "intento18").then(projectId => {
   getStatusBySession(1, projectId, status => {
     console.log(status);
   });
-  //endSession(1, projectId);
+  endSession(1, projectId);
+  getStatusBySession(1, projectId, status => {
+    console.log(status);
+  });
 });

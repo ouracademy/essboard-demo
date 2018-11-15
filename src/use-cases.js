@@ -78,14 +78,11 @@ export function getStatusBySession(sessionNum, projectId, callBack) {
   });
 }
 
-export function getCurrentState(projectId) {
-  return projectsDb.find({ projectId }, function(err, projects) {
+export function getCurrentState(key) {
+  return projectsDb.find({ key }, function(err, projects) {
     const project = projects[0];
 
-    return eventsDb.find({ session: sessionNum, projectId }, function(
-      err,
-      events
-    ) {
+    return eventsDb.find({ session: sessionNum, key }, function(err, events) {
       const initialStatus = project.status;
       let status = new Status(initialStatus);
       status.setEvents(events);
@@ -93,8 +90,46 @@ export function getCurrentState(projectId) {
     });
   });
 }
-export function endSession(sessionNum, projectId) {}
-
+export function endSession(sessionNum, key) {
+  sessionsDb.find({ num: sessionNum, projectId: key }, function(err, sessions) {
+    const session = sessions[0];
+    if (session.endDate) {
+    } else {
+      projectsDb.find({ key }, function(err, projects) {
+        const project = projects[0];
+        getStatusBySession(sessionNum, key, status => {
+          update(status, project.lastSnapshot, project.path).then(result => {
+            const change = result["data"]["content"]["sha"];
+            session.endDate = new Date();
+            session.snapshot = change;
+            sessionsDb.update(
+              { num: sessionNum, projectId: key },
+              session,
+              {},
+              function(err, numReplaced) {}
+            );
+            project.lastSnapshot = change;
+            project.lastSession = sessionNum;
+            projectsDb.update({ key }, project, {}, function(
+              err,
+              numReplaced
+            ) {});
+          });
+        });
+      });
+    }
+  });
+}
+export function editSession(sessionNum, projectId, change) {
+  sessionsDb.find({ num: sessionNum, projectId }, function(err, sessions) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    const session = sessions[0];
+    const updatedSession = { ...session, change };
+  });
+}
 export function addVotes(projectKey, votes, sessionNumber) {
   projectsDb.find({ key: projectKey }, function(err, docs) {
     if (err) {
@@ -116,6 +151,7 @@ export function addVotes(projectKey, votes, sessionNumber) {
             session: sessionNumber
           });
           project["lastSnapshot"] = change;
+
           projectsDb.update({ key: projectKey }, project, {}, function(
             err,
             numReplaced
