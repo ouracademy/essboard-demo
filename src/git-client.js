@@ -34,7 +34,7 @@ export function createFile(path, content) {
   });
 }
 
-export function getContentFrom(file_sha) {
+export function getContentFromFile(file_sha) {
   return octokit.gitdata
     .getBlob({ owner: account.owner, repo: account.repo, file_sha })
     .then(result => {
@@ -44,7 +44,7 @@ export function getContentFrom(file_sha) {
     .catch(err => console.log(err));
 }
 
-export function update(content, sha, path) {
+export function updateFile(content, sha, path) {
   return octokit.repos.updateFile({
     owner: account.owner,
     repo: account.repo,

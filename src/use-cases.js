@@ -1,8 +1,6 @@
-const { btoa } = require("abab");
 import { generateKey, Status } from "./util";
 import { membersDb, changesDb, projectsDb, sessionsDb, eventsDb } from "./repo";
-import { account } from "./config";
-import { getContentFrom, update, createFile } from "./git-client";
+import { getContentFromFile, updateFile, createFile } from "./git-client";
 
 export function createProject(owner, name) {
   const key = generateKey(name);
@@ -38,12 +36,14 @@ export function addMember(projectKey, name, role = "colaborator") {
   });
 }
 
-export function createSession(num, projectId, snapshot = null) {
-  sessionsDb.insert({
-    projectId,
-    num,
-    snapshot,
-    endDate: null
+export function createSession(num, projectId) {
+  projectsDb.findOne({ key: projectId }, function(err, project) {
+    sessionsDb.insert({
+      projectId,
+      num,
+      snapshot: project.lastSnapshot,
+      endDate: null
+    });
   });
 }
 
@@ -59,7 +59,7 @@ export function getStatusBySession(sessionNum, projectId, callBack) {
   sessionsDb.find({ num: sessionNum, projectId }, function(err, sessions) {
     const session = sessions[0];
     const statusPromise = session.snapshot
-      ? getContentFrom(session.snapshot)
+      ? getContentFromFile(session.snapshot)
       : Promise.resolve(null);
     statusPromise.then(status => {
       if (session.endDate) {
@@ -81,8 +81,12 @@ export function getStatusBySession(sessionNum, projectId, callBack) {
 export function getCurrentState(key) {
   return projectsDb.find({ key }, function(err, projects) {
     const project = projects[0];
-
-    return eventsDb.find({ session: sessionNum, key }, function(err, events) {
+    //TODO:  conseguir current session
+    const currentSession = 0;
+    return eventsDb.find({ session: currentSession, projectId: key }, function(
+      err,
+      events
+    ) {
       const initialStatus = project.status;
       let status = new Status(initialStatus);
       status.setEvents(events);
@@ -91,33 +95,29 @@ export function getCurrentState(key) {
   });
 }
 export function endSession(sessionNum, key) {
-  sessionsDb.find({ num: sessionNum, projectId: key }, function(err, sessions) {
-    const session = sessions[0];
+  sessionsDb.findOne({ num: sessionNum, projectId: key }, function(
+    err,
+    session
+  ) {
     if (session.endDate) {
-    } else {
-      projectsDb.find({ key }, function(err, projects) {
-        const project = projects[0];
-        getStatusBySession(sessionNum, key, status => {
-          update(status, project.lastSnapshot, project.path).then(result => {
-            const change = result["data"]["content"]["sha"];
-            session.endDate = new Date();
-            session.snapshot = change;
-            sessionsDb.update(
-              { num: sessionNum, projectId: key },
-              session,
-              {},
-              function(err, numReplaced) {}
-            );
-            project.lastSnapshot = change;
-            project.lastSession = sessionNum;
-            projectsDb.update({ key }, project, {}, function(
-              err,
-              numReplaced
-            ) {});
-          });
+      throw "The session is already closed";
+    }
+
+    projectsDb.findOne({ key }, function(err, project) {
+      getStatusBySession(sessionNum, key, status => {
+        updateFile(status, project.lastSnapshot, project.path).then(result => {
+          const change = result["data"]["content"]["sha"];
+
+          session.endDate = new Date();
+          session.snapshot = change;
+          sessionsDb.update({ num: sessionNum, projectId: key }, session, {});
+
+          project.lastSnapshot = change;
+          project.lastSession = sessionNum;
+          projectsDb.update({ key }, project, {});
         });
       });
-    }
+    });
   });
 }
 export function editSession(sessionNum, projectId, change) {
@@ -138,10 +138,10 @@ export function addVotes(projectKey, votes, sessionNumber) {
     }
     const project = docs[0];
     const lastChange = project["lastSnapshot"];
-    getContentFrom(lastChange).then(content => {
+    getContentFromFile(lastChange).then(content => {
       let status = new Status(content);
       status.setEvents(votes);
-      update(status.getValue(), lastChange, project["path"])
+      updateFile(status.getValue(), lastChange, project["path"])
         .then(result => {
           const change = result["data"]["content"]["sha"];
           changesDb.insert({
