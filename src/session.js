@@ -1,4 +1,4 @@
-import { containsSameItems } from "./array";
+import { containsSameItems, arrayGroupBy } from "./array";
 import { Vote } from "./Vote";
 
 export class Session {
@@ -47,20 +47,7 @@ export class Session {
       ? this.totalVotes.filter(vote => byState(state.id)(vote.checkpointId))
       : this.totalVotes;
 
-    return votes.reduce((ac, vote) => {
-      const index = ac.findIndex(x => x.checkpointId === vote.checkpointId);
-
-      if (index !== -1) {
-        ac[index].votes.push(vote);
-      } else {
-        ac.push({
-          checkpointId: vote.checkpointId,
-          votes: [vote]
-        });
-      }
-
-      return ac;
-    }, []);
+    return arrayGroupBy("checkpointId", votes)("votes");
   }
 
   alphaStates(alpha) {
