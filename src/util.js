@@ -1,51 +1,8 @@
 const uuidv5 = require("uuid/v5");
-const { btoa, atob } = require("abab");
-const octokit = require("@octokit/rest")();
-octokit.authenticate({
-  type: "basic",
-  username: "qpdian",
-  password: "4942224Tn"
-});
-export const octoKitAuthenticated = octokit;
-
-import { account } from "./config";
 
 export function generateKey(nameProject) {
   const MY_NAMESPACE = "1b671a64-40d5-491e-99b0-da01ff1f3341";
   return uuidv5(nameProject, MY_NAMESPACE);
-}
-
-export function getContentFrom(file_sha) {
-  return octokit.gitdata
-    .getBlob({ owner: account.owner, repo: account.repo, file_sha })
-    .then(result => {
-      const value = JSON.parse(atob(result["data"]["content"]));
-      return value;
-    })
-    .catch(err => console.log(err));
-}
-export function update(content, sha, path) {
-  return octokit.repos.updateFile({
-    owner: account.owner,
-    repo: account.repo,
-    path,
-    message: "edit",
-    sha,
-    content: btoa(JSON.stringify(content))
-  });
-}
-
-export function getCommit(commit_sha) {
-  octokit.gitdata
-    .getCommit({
-      owner: account.owner,
-      repo: account.repo,
-      commit_sha
-    })
-    .then(result => {
-      console.log(result["data"]);
-    })
-    .catch(err => console.log(err));
 }
 
 export class Status {

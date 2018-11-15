@@ -1,13 +1,8 @@
 const { btoa } = require("abab");
-import {
-  octoKitAuthenticated,
-  generateKey,
-  getContentFrom,
-  update,
-  Status
-} from "./util";
+import { generateKey, Status } from "./util";
 import { membersDb, changesDb, projectsDb, sessionsDb, eventsDb } from "./repo";
 import { account } from "./config";
+import { octoKitAuthenticated, getContentFrom, update } from "./git-client";
 
 export function createProject(owner, name) {
   const key = generateKey(name);
