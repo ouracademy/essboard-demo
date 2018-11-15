@@ -79,22 +79,27 @@ export const evaluatedBy = (state, session) => {
 
   return votesByCheckpoint.map(x => x.checkpointId).length === 0
     ? "no-body"
-    : containsSameItems(
-        state.checkpoints.map(x => x.id),
-        votesByCheckpoint.map(x => x.checkpointId)
-      ) &&
-      votesByCheckpoint
-        .map(x => x.votes)
-        .every(votes => {
-          const voters = votes.map(x => x.voter);
-
-          return votes.every(vote => {
-            return isApprobeForAll(vote.session.members)(voters);
-          });
-        })
+    : evaluatedByEveryMember(state, votesByCheckpoint)
     ? "every-member"
     : "any-member";
 };
 
 export const byState = state => checkpoint =>
   state === parseInt(parseInt(checkpoint) / 10);
+
+const evaluatedByEveryMember = (state, votesByCheckpoint) => {
+  return (
+    containsSameItems(
+      state.checkpoints.map(x => x.id),
+      votesByCheckpoint.map(x => x.checkpointId)
+    ) &&
+    votesByCheckpoint
+      .map(x => x.votes)
+      .every(votes => {
+        const voters = votes.map(x => x.voter);
+        return votes.every(vote =>
+          isApprobeForAll(vote.session.members)(voters)
+        );
+      })
+  );
+};
