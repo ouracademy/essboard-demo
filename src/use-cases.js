@@ -2,52 +2,55 @@ const { btoa } = require("abab");
 import {
   octoKitAuthenticated,
   generateKey,
-  membersDb,
-  changesDb,
-  projectsDb,
-  sessionsDb,
-  eventsDb,
   getContentFrom,
   update,
   Status
 } from "./util";
+import { membersDb, changesDb, projectsDb, sessionsDb, eventsDb } from "./repo";
+import { account } from "./config";
 
-export function createProject(owner, nameProject) {
-  const key = generateKey(nameProject);
+export function createProject(owner, name) {
+  const key = generateKey(name);
   const status = { states: [] };
+  const path = key + ".json";
+
   return octoKitAuthenticated.repos
     .createFile({
-      owner: "qpdian",
-      repo: "demo",
-      path: key + ".json",
+      owner: account.owner,
+      repo: account.repo,
+      path,
       message: "init monitoring",
       content: btoa(JSON.stringify(status))
     })
     .then(result => {
+      const contentSha = result["data"]["content"]["sha"];
+
       projectsDb.insert({
-        name: nameProject,
+        name,
         status,
         key,
-        path: key + ".json",
-        lastSnapshot: result["data"]["content"]["sha"]
+        path,
+        lastSnapshot: contentSha
       });
-      membersDb.insert({ project: key, name: owner, role: "owner" });
+      addMember(key, owner, "owner");
       changesDb.insert({
         project: key,
-        contentSha: result["data"]["content"]["sha"],
+        contentSha,
         reason: "init",
         session: null
       });
       return key;
     });
 }
-export function addMember(projectKey, memberName) {
+
+export function addMember(projectKey, name, role = "colaborator") {
   membersDb.insert({
     project: projectKey,
-    name: memberName,
-    role: "colaborator"
+    name,
+    role
   });
 }
+
 export function createSession(num, projectId) {
   sessionsDb.insert({
     projectId,
@@ -55,6 +58,7 @@ export function createSession(num, projectId) {
     snapshot: null
   });
 }
+
 export function addEvent(sessionNum, projectId, event) {
   eventsDb.insert({
     session: sessionNum,
@@ -62,6 +66,7 @@ export function addEvent(sessionNum, projectId, event) {
     event
   });
 }
+
 export function getStatusBySession(sessionNum, projectId) {
   sessionsDb.find({ num: sessionNum, projectId }, function(err, sessions) {
     const session = sessions[0];
