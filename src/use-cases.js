@@ -5,6 +5,7 @@ import {
   membersDb,
   changesDb,
   projectsDb,
+  sessionsDb,
   getContentFrom,
   update,
   Status
@@ -36,6 +37,7 @@ export function createProject(owner, nameProject) {
         reason: "init",
         session: null
       });
+      return key;
     });
 }
 export function addMember(projectKey, memberName) {
@@ -45,6 +47,22 @@ export function addMember(projectKey, memberName) {
     role: "colaborator"
   });
 }
+export function createSession(projectId, num) {
+  sessionsDb.insert({
+    projectId,
+    num,
+    reference: null
+  });
+}
+export function addEvent(sessionNum, projectId, event) {
+  sessionsDb.insert({
+    session: numSession,
+    projectId,
+    event
+  });
+}
+export function getStatusBySession(sessionNum, projectId) {}
+export function endSession(sessionNum, projectId) {}
 
 export function addVotes(projectKey, votes, sessionNumber) {
   projectsDb.find({ key: projectKey }, function(err, docs) {

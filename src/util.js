@@ -83,20 +83,32 @@ export class State {
   value;
   constructor(value) {
     this.value = value;
+    this.value["checkpoints"] = [];
   }
   getValue() {
     return this.value;
   }
   addVote(from, checkpointId, date) {
-    const check = this.value.checkpoints.find(
-      check => check.voter === from && check.id === checkpointId
+    const index = this.value.checkpoints.findIndex(
+      check => check.id === checkpointId
     );
-    if (check) return;
-    this.value.checkpoints.push({
-      voter: from,
-      id: checkpointId,
-      date
-    });
+
+    if (index >= 0) {
+      if (
+        this.value.checkpoints[index].voters.find(vote => vote.voter === from)
+      ) {
+        return;
+      }
+      this.value.checkpoints[index].voters.push({
+        voter: from,
+        date
+      });
+    } else {
+      this.value.checkpoints.push({
+        id: checkpointId,
+        voters: [{ voter: from, date }]
+      });
+    }
   }
 }
 
@@ -113,6 +125,11 @@ export const projectsDb = new Datastore({
 });
 export const membersDb = new Datastore({
   filename: "data/members",
+  autoload: true,
+  timestampData: true
+});
+export const sessionsDb = new Datastore({
+  filename: "data/sessions",
   autoload: true,
   timestampData: true
 });
