@@ -1,5 +1,5 @@
 import { generateKey } from "../util";
-import { createFile } from "../git-client";
+import { createFile, deleteFile } from "../git-client";
 import { projectRepository } from "../repo";
 import { MemberService } from "./members";
 export class ProjectService {
@@ -7,7 +7,6 @@ export class ProjectService {
     const key = generateKey(name);
     const status = { states: [] };
     const path = key + ".json";
-
     return createFile(path, status)
       .then(result => {
         const contentSha = result["data"]["content"]["sha"];
@@ -21,7 +20,7 @@ export class ProjectService {
         });
       })
       .catch(err => {
-        console.log(err);
+        console.log("err create file", err);
       });
   }
 
@@ -39,6 +38,15 @@ export class ProjectService {
     return ProjectService.find({ key }).then(project => {
       const newProject = { ...project, ...{ lastSnapshot: newSnapshot } };
       return projectRepository.update({ key }, newProject, {});
+    });
+  }
+  static remove(query) {
+    return projectRepository.findOne(query, {}).then(project => {
+      return deleteFile(project.path, project.lastSnapshot)
+        .then(() => {
+          return projectRepository.remove(query, {});
+        })
+        .catch(err => console.log(err));
     });
   }
 }

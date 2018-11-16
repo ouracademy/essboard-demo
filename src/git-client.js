@@ -34,6 +34,18 @@ export function createFile(path, content) {
   });
 }
 
+export function deleteFile(path, sha, message = "remove file") {
+  return octokit.repos
+    .deleteFile({
+      owner: account.owner,
+      repo: account.repo,
+      path,
+      sha,
+      message
+    })
+    .then(result => {});
+}
+
 export function getContentFromFile(file_sha) {
   return octokit.gitdata
     .getBlob({ owner: account.owner, repo: account.repo, file_sha })
