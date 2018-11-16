@@ -3,14 +3,11 @@
 import { Project } from "./project";
 import { artmadeit, qpdiam } from "./project.spec";
 import { stakeholder } from "./kernel-test-data";
-import {
-  isApprobeForAll,
-  evaluatedBy,
-  byState,
-  createEventStore
-} from "./session";
+import { createEventStore } from "./session";
 import { User } from "./user";
 import { MockDate } from "./MockDate";
+
+import { byState, evaluatedBy, isApprobeForAll } from "./SessionStatus";
 
 describe("session", () => {
   let project, session;
