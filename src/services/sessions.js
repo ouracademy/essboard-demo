@@ -6,13 +6,14 @@ import { Status } from "../status";
 import { getContentFromFile, updateFile } from "../git-client";
 
 export class SessionService {
-  static create(projectId, num) {
-    ProjectService.getLastSnapshot(projectId).then(lastSnapshot => {
+  static create(projectId, num, createdAt = null) {
+    return ProjectService.getLastSnapshot(projectId).then(lastSnapshot => {
       return sessionRepository.insert({
         projectId,
         num,
         snapshot: lastSnapshot,
-        endDate: null
+        endDate: null,
+        createdAt
       });
     });
   }
