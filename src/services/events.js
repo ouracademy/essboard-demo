@@ -8,17 +8,13 @@ export class EventService {
       event
     });
   }
-  static createFromArray(projectId, sessionNum, events) {
-    events.forEach(event => {
-      const { action, from, checkPointId, stateId, date } = event;
-      EventService.create(projectId, sessionNum, {
-        action,
-        from,
-        checkPointId,
-        stateId,
-        date
-      });
-    });
+  static createFromArray(projectId, sessionNum, events = []) {
+    const items = events.map(event => ({
+      event,
+      projectId,
+      session: sessionNum
+    }));
+    return eventRepository.insert(items);
   }
 
   static getBySession(sessionNum, projectId) {

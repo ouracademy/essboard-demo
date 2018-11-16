@@ -1,9 +1,11 @@
 import { sessionRepository } from "../repo";
 import { ProjectService } from "./projects";
 import { EventService } from "./events";
-import { Status } from "../status";
+import { StatusProject } from "../status";
 
 import { getContentFromFile, updateFile } from "../git-client";
+import { MemberService } from "./members";
+import { kernel } from "../kernel";
 
 export class SessionService {
   static create(projectId, num, createdAt = null) {
@@ -30,11 +32,18 @@ export class SessionService {
             sessionNum,
             projectId
           );
-          return Promise.all([snapshotPromise, eventsPromise]).then(
-            ([snapshot, events]) => {
-              return SessionService.processWithEvents(snapshot, events);
-            }
-          );
+          const membersPromise = MemberService.find({ projectId });
+          return Promise.all([
+            snapshotPromise,
+            eventsPromise,
+            membersPromise
+          ]).then(([snapshot, events, members]) => {
+            return SessionService.processWithEvents(
+              snapshot,
+              events,
+              members.map(member => member.name)
+            );
+          });
         }
       })
       .catch(err => console.log(err));
@@ -45,10 +54,11 @@ export class SessionService {
       ? getContentFromFile(snapshotSHA)
       : Promise.resolve(null);
   }
-  static processWithEvents(initialStatus, events) {
-    let status = new Status(initialStatus);
+  static processWithEvents(initialStatus, events, members) {
+    let status = new StatusProject(initialStatus, members);
     status.setEvents(events);
-    return status.getValue();
+    status.setKernel(kernel);
+    return status.getStatus();
   }
   static updateSnapshot(newContent, snapshotSHA, filePath) {
     return updateFile(newContent, snapshotSHA, filePath).then(result => {

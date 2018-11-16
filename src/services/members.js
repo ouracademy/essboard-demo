@@ -8,4 +8,14 @@ export class MemberService {
       role
     });
   }
+  static find({ projectId }) {
+    return memberRepository.find({
+      projectId
+    });
+  }
+  static remove(query) {
+    return memberRepository.remove({
+      query
+    });
+  }
 }
