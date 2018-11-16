@@ -3,7 +3,7 @@ import { createFile } from "../git-client";
 import { projectRepository } from "../repo";
 import { MemberService } from "./members";
 export class ProjectService {
-  static create(owner, name) {
+  static async create(owner, name) {
     const key = generateKey(name);
     const status = { states: [] };
     const path = key + ".json";
@@ -11,29 +11,28 @@ export class ProjectService {
     return createFile(path, status)
       .then(result => {
         const contentSha = result["data"]["content"]["sha"];
-
-        projectRepository.insert({
+        MemberService.create(key, owner, "owner");
+        return projectRepository.insert({
           name,
           status,
           key,
           path,
           lastSnapshot: contentSha
         });
-        MemberService.create(key, owner, "owner");
-        return key;
       })
       .catch(err => {
         console.log(err);
       });
   }
 
+  static find(query) {
+    return projectRepository.findOne(query);
+  }
+
   static getLastSnapshot(key) {
     return projectRepository
       .findOne({ key })
       .then(project => project.lastSnapshot);
-  }
-  static find(query) {
-    return projectRepository.findOne(query);
   }
 
   static updateLastSnapshot(key, newSnapshot) {
