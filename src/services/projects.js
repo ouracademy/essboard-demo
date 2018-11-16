@@ -3,11 +3,11 @@ import { createFile, deleteFile } from "../git-client";
 import { projectRepository } from "../repo";
 import { MemberService } from "./members";
 export class ProjectService {
-  static async create(owner, name) {
+  static create(owner, name) {
     const key = generateKey(name);
     const status = { states: [] };
-    const path = key + ".json";
-    return createFile(path, status)
+    const path = name + key + ".json";
+    return createFile(path, status, "create file: " + path)
       .then(result => {
         const contentSha = result["data"]["content"]["sha"];
         MemberService.create(key, owner, "owner");
@@ -20,7 +20,7 @@ export class ProjectService {
         });
       })
       .catch(err => {
-        console.log("err create file", err);
+        console.log("error create file", err);
       });
   }
 
@@ -41,12 +41,27 @@ export class ProjectService {
     });
   }
   static remove(query) {
-    return projectRepository.findOne(query, {}).then(project => {
-      return deleteFile(project.path, project.lastSnapshot)
-        .then(() => {
-          return projectRepository.remove(query, {});
-        })
-        .catch(err => console.log(err));
+    return projectRepository.find(query, {}).then(projects => {
+      let promises = [];
+      for (let i = 0; i < projects.length; i++) {
+        promises.push(() =>
+          deleteFile(
+            projects[i].path,
+            projects[i].lastSnapshot,
+            "delete file:" + projects[i].path
+          )
+        );
+      }
+
+      return promises.reduce(
+        (promise, func) =>
+          promise.then(result =>
+            func().then(() => {
+              return projectRepository.remove(query, {});
+            })
+          ),
+        Promise.resolve([])
+      );
     });
   }
 }

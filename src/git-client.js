@@ -24,12 +24,12 @@ export function getCommit(commit_sha) {
     .catch(err => console.log(err));
 }
 
-export function createFile(path, content) {
+export function createFile(path, content, message) {
   return octoKitAuthenticated.repos.createFile({
     owner: account.owner,
     repo: account.repo,
     path,
-    message: "init monitoring",
+    message,
     content: btoa(JSON.stringify(content))
   });
 }
