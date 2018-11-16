@@ -1,4 +1,4 @@
-import { toArray, containsSameItems } from "./array";
+import { toArray, containsSameItems } from "../array";
 import groupBy from "lodash/fp/groupBy";
 
 export class SessionStatus {

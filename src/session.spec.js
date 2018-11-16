@@ -7,7 +7,7 @@ import { createEventStore } from "./session";
 import { User } from "./user";
 import { MockDate } from "./MockDate";
 
-import { byState, evaluatedBy, isApprobeForAll } from "./SessionStatus";
+import { byState, evaluatedBy, isApprobeForAll } from "./session/status";
 
 describe("session", () => {
   let project, session;

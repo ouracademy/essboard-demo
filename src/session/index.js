@@ -1,5 +1,5 @@
-import { VoteEmited, VoteRemoved } from "./Vote";
-import { SessionStatus } from "./SessionStatus";
+import { VoteEmited, VoteRemoved } from "../Vote";
+import { SessionStatus } from "./status";
 
 let voteEventStore;
 export const createEventStore = () => {
