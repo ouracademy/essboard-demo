@@ -15,10 +15,11 @@ describe("create project", () => {
     );
   });
   it("should crate project with same name", () => {
-    return ProjectService.create("arthur", "Ouracademy").then(project =>
-      ProjectService.create("arthur", "Ouracademy").then(newProject => {
+    return ProjectService.create("arthur", "Ouracademy").then(project => {
+      return ProjectService.create("arthur", "Ouracademy").then(newProject => {
         expect(newProject.name).toBe("Ouracademy");
-      })
-    );
+        return ProjectService.remove({ _id: newProject._id });
+      });
+    });
   });
 });
