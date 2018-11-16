@@ -3,7 +3,12 @@
 import { Project } from "./project";
 import { artmadeit, qpdiam } from "./project.spec";
 import { stakeholder } from "./kernel-test-data";
-import { isApprobeForAll, evaluatedBy, byState } from "./session";
+import {
+  isApprobeForAll,
+  evaluatedBy,
+  byState,
+  createEventStore
+} from "./session";
 import { User } from "./user";
 import { MockDate } from "./MockDate";
 
@@ -12,6 +17,7 @@ describe("session", () => {
   const currentDate = new Date("2017-06-13T04:41:20");
 
   beforeEach(() => {
+    createEventStore();
     MockDate.set(currentDate);
 
     project = new Project("ouracademy");
@@ -99,6 +105,7 @@ describe("session", () => {
 describe("evaluatedBy", () => {
   let session;
   beforeEach(() => {
+    createEventStore();
     const project = new Project("ouracademy");
     project.join(artmadeit);
     project.join(qpdiam);
@@ -164,6 +171,7 @@ const times = [
 describe("alphaStates()", () => {
   let project;
   beforeEach(() => {
+    createEventStore();
     MockDate.set(times[0]);
 
     project = new Project("ouracademy");

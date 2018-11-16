@@ -1,16 +1,17 @@
-import { containsSameItems, arrayGroupBy } from "./array";
-import { Vote } from "./Vote";
+import { containsSameItems, toArray } from "./array";
+import { VoteEmited, VoteRemoved } from "./Vote";
+import groupBy from "lodash/fp/groupBy";
+
+let voteEventStore;
+export const createEventStore = () => {
+  voteEventStore = [];
+};
 
 export class Session {
   constructor(project) {
     this.createdAt = new Date();
     this.project = project;
     this.previousSession = this.project.currentSession;
-    this.totalVotes = this.getTotalVotes();
-  }
-
-  getTotalVotes() {
-    return this.previousSession ? [...this.previousSession.totalVotes] : [];
   }
 
   end() {
@@ -27,27 +28,33 @@ export class Session {
     if (!this.project.members.includes(user))
       throw `Sorry, ${user.name} is not a member`;
 
-    this.totalVotes.push(new Vote(user, checkpointId, this));
+    voteEventStore.push(new VoteEmited(user, checkpointId, this));
   }
 
   removeVote(user, checkpointId) {
     if (this.isFinished) throw "Session is finished, no one can remove a vote";
 
-    this.totalVotes = this.totalVotes.filter(
-      x => !(x.voter === user && x.checkpointId === checkpointId)
-    );
+    voteEventStore.push(new VoteRemoved(user, checkpointId, this));
+  }
+
+  get votes() {
+    return voteEventStore
+      .filter(x => x.createdAt <= this.createdAt)
+      .reduce(voteReducer, []);
   }
 
   get voters() {
-    return this.totalVotes.map(x => x.voter);
+    return this.votes.map(x => x.voter);
   }
 
   getVotesByCheckpoint(state) {
     const votes = state
-      ? this.totalVotes.filter(vote => byState(state.id)(vote.checkpointId))
-      : this.totalVotes;
+      ? this.votes.filter(vote => byState(state.id)(vote.checkpointId))
+      : this.votes;
 
-    return arrayGroupBy("checkpointId", votes)("votes");
+    return toArray("checkpointId", groupBy(x => x.checkpointId)(votes))(
+      "votes"
+    );
   }
 
   alphaStates(alpha) {
@@ -57,6 +64,18 @@ export class Session {
     }));
   }
 }
+
+export const voteReducer = (prevState, action) => {
+  switch (action.constructor.name) {
+    case VoteEmited.name:
+      return [...prevState, action.vote];
+    case VoteRemoved.name:
+      return prevState.filter(
+        x =>
+          !(x.voter === action.voter && x.checkpointId === action.checkpointId)
+      );
+  }
+};
 
 export const isApprobeForAll = allMembers => checks =>
   containsSameItems(allMembers, checks);
