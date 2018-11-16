@@ -120,7 +120,7 @@ describe("evaluatedBy", () => {
   });
 
   it("get votes by checkpoint", () => {
-    const votesByCheckpoint = session.getVotesByCheckpoint();
+    const votesByCheckpoint = session.status.getVotesByCheckpoint();
     // in order to make more easy the test
     const result = votesByCheckpoint.map(x => ({
       checkpointId: x.checkpointId,
@@ -135,15 +135,19 @@ describe("evaluatedBy", () => {
   });
 
   it("every member", () => {
-    expect(evaluatedBy(stakeholder.states[0], session)).toBe("every-member");
+    expect(evaluatedBy(stakeholder.states[0], session.status)).toBe(
+      "every-member"
+    );
   });
 
   it("any member", () => {
-    expect(evaluatedBy(stakeholder.states[1], session)).toBe("any-member");
+    expect(evaluatedBy(stakeholder.states[1], session.status)).toBe(
+      "any-member"
+    );
   });
 
   it("no body", () => {
-    expect(evaluatedBy(stakeholder.states[2], session)).toBe("no-body");
+    expect(evaluatedBy(stakeholder.states[2], session.status)).toBe("no-body");
   });
 });
 
@@ -232,12 +236,14 @@ describe("alphaStates()", () => {
       ]
     ]
   ])("should consume alpha information for session %i", (n, expected) => {
-    expect(project.sessions[n - 1].alphaStates(stakeholder)).toEqual(expected);
+    expect(project.sessions[n - 1].status.alphaStates(stakeholder)).toEqual(
+      expected
+    );
   });
 
   describe("shouldn't alterate past alpha states", () => {
     afterEach(() => {
-      expect(project.sessions[2].alphaStates(stakeholder)).toEqual(
+      expect(project.sessions[2].status.alphaStates(stakeholder)).toEqual(
         stateIn3rdSession
       );
     });
@@ -249,7 +255,7 @@ describe("alphaStates()", () => {
       session5.vote(eli, "131");
       session5.end();
 
-      expect(session5.alphaStates(stakeholder)).toEqual([
+      expect(session5.status.alphaStates(stakeholder)).toEqual([
         { evaluatedBy: "every-member", id: 11 },
         { evaluatedBy: "every-member", id: 12 },
         { evaluatedBy: "any-member", id: 13 }
@@ -262,7 +268,7 @@ describe("alphaStates()", () => {
       session5.vote(qpdiam, "132");
       session5.end();
 
-      expect(session5.alphaStates(stakeholder)).toEqual([
+      expect(session5.status.alphaStates(stakeholder)).toEqual([
         { evaluatedBy: "every-member", id: 11 },
         { evaluatedBy: "every-member", id: 12 },
         { evaluatedBy: "every-member", id: 13 }
@@ -276,7 +282,9 @@ describe("alphaStates()", () => {
       session5.removeVote(artmadeit, "131");
       session5.end();
 
-      expect(session5.alphaStates(stakeholder)).toEqual(stateIn3rdSession);
+      expect(session5.status.alphaStates(stakeholder)).toEqual(
+        stateIn3rdSession
+      );
     });
   });
 });

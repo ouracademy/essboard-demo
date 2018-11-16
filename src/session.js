@@ -47,21 +47,8 @@ export class Session {
     return this.votes.map(x => x.voter);
   }
 
-  getVotesByCheckpoint(state) {
-    const votes = state
-      ? this.votes.filter(vote => byState(state.id)(vote.checkpointId))
-      : this.votes;
-
-    return toArray("checkpointId", groupBy(x => x.checkpointId)(votes))(
-      "votes"
-    );
-  }
-
-  alphaStates(alpha) {
-    return alpha.states.map(state => ({
-      evaluatedBy: evaluatedBy(state, this),
-      id: state.id
-    }));
+  get status() {
+    return new SessionStatus(this);
   }
 }
 
@@ -77,11 +64,34 @@ export const voteReducer = (prevState, action) => {
   }
 };
 
-export const isApprobeForAll = allMembers => checks =>
-  containsSameItems(allMembers, checks);
+class SessionStatus {
+  constructor(session) {
+    this.session = session;
+  }
 
-export const evaluatedBy = (state, session) => {
-  const votesByCheckpoint = session.getVotesByCheckpoint(state);
+  getVotesByCheckpoint(state) {
+    const votes = state
+      ? this.session.votes.filter(vote => byState(state.id)(vote.checkpointId))
+      : this.session.votes;
+
+    return toArray("checkpointId", groupBy(x => x.checkpointId)(votes))(
+      "votes"
+    );
+  }
+
+  alphaStates(alpha) {
+    return alpha.states.map(state => ({
+      evaluatedBy: evaluatedBy(state, this),
+      id: state.id
+    }));
+  }
+}
+
+export const byState = state => checkpoint =>
+  state === parseInt(parseInt(checkpoint) / 10);
+
+export const evaluatedBy = (state, sessionStatus) => {
+  const votesByCheckpoint = sessionStatus.getVotesByCheckpoint(state);
 
   return votesByCheckpoint.map(x => x.checkpointId).length === 0
     ? "no-body"
@@ -89,9 +99,6 @@ export const evaluatedBy = (state, session) => {
     ? "every-member"
     : "any-member";
 };
-
-export const byState = state => checkpoint =>
-  state === parseInt(parseInt(checkpoint) / 10);
 
 const evaluatedByEveryMember = (state, votesByCheckpoint) => {
   return (
@@ -109,3 +116,6 @@ const evaluatedByEveryMember = (state, votesByCheckpoint) => {
       })
   );
 };
+
+export const isApprobeForAll = allMembers => checks =>
+  containsSameItems(allMembers, checks);
