@@ -6,7 +6,6 @@ import {
   takeSnapshot,
   snapshots
 } from "./index";
-import { MockDate } from "../MockDate";
 
 const reducer = (acc, action) => [...acc, action.name];
 
@@ -42,12 +41,7 @@ describe("eventStore", () => {
     const currentState = ["Cook", "Wash the dishes"];
 
     beforeEach(() => {
-      MockDate.set(new Date(2018, 10, 18));
-      snapshot = takeSnapshot(reducer);
-    });
-
-    afterEach(() => {
-      MockDate.reset();
+      snapshot = takeSnapshot(reducer, new Date(2018, 10, 18));
     });
 
     it("has createdDate equals to currentDate", () => {
@@ -63,24 +57,21 @@ describe("eventStore", () => {
       ]);
     });
 
-    describe("when taking another snapshot", () => {
-      it("should contains 2 snapshots", () => {
-        dispatch({
-          type: "ADD_TODO",
-          name: "Take vacations",
-          createdAt: new Date(2018, 10, 20)
-        });
-
-        MockDate.set(new Date(2018, 10, 18));
-        const newSnap = takeSnapshot(reducer);
-
-        expect(snapshots).toHaveLength(2);
-        expect(newSnap.state).toEqual([
-          "Cook",
-          "Wash the dishes",
-          "Take vacations"
-        ]);
+    it("should contains 2 snapshots when taking another snapshot", () => {
+      dispatch({
+        type: "ADD_TODO",
+        name: "Take vacations",
+        createdAt: new Date(2018, 10, 19)
       });
+
+      const newSnap = takeSnapshot(reducer, new Date(2018, 10, 20));
+
+      expect(snapshots).toHaveLength(2);
+      expect(newSnap.state).toEqual([
+        "Cook",
+        "Wash the dishes",
+        "Take vacations"
+      ]);
     });
   });
 });

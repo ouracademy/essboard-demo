@@ -9,8 +9,7 @@ export const createEventStore = () => {
   snapshots = [];
 };
 
-export const takeSnapshot = reducer => {
-  const timestamp = new Date();
+export const takeSnapshot = (reducer, timestamp = new Date()) => {
   const snapshot = {
     createdAt: timestamp,
     state: getCurrentState(timestamp, reducer)
@@ -21,22 +20,19 @@ export const takeSnapshot = reducer => {
 };
 
 const lastSnapshot = date => {
-  for (let i = snapshots.length - 1; i >= 0; i--) {
-    const snapshot = snapshots[i];
-    if (snapshot.createdAt <= date) return snapshot;
-  }
-
-  return null; //{ createdAt: new Date(), state: [] };
+  return snapshots.find(snapshot => {
+    return snapshot.createdAt - date <= 0;
+  });
 };
 
 export const getCurrentState = (date, reducer) => {
   const lastSnap = lastSnapshot(date);
 
-  const diff = eventStore.filter(x => x.createdAt <= date);
-
   return (lastSnap
-    ? diff.filter(x => lastSnap.createdAt <= x.createdAt)
-    : diff
+    ? eventStore.filter(
+        x => lastSnap.createdAt < x.createdAt && x.createdAt <= date
+      )
+    : eventStore.filter(x => x.createdAt <= date)
   ).reduce(reducer, lastSnap ? lastSnap.state : []);
 };
 
@@ -54,7 +50,7 @@ export class Session {
   end() {
     this.endDate = new Date();
     this.members = [...this.project.members];
-    //takeSnapshot(voteReducer);
+    takeSnapshot(voteReducer);
   }
 
   get isFinished() {
