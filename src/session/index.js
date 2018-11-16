@@ -1,9 +1,47 @@
 import { VoteEmited, VoteRemoved } from "../Vote";
 import { SessionStatus } from "./status";
 
-let voteEventStore;
+export let eventStore;
+export let snapshots;
+
 export const createEventStore = () => {
-  voteEventStore = [];
+  eventStore = [];
+  snapshots = [];
+};
+
+export const takeSnapshot = reducer => {
+  const timestamp = new Date();
+  const snapshot = {
+    createdAt: timestamp,
+    state: getCurrentState(timestamp, reducer)
+  };
+  snapshots.push(snapshot);
+
+  return snapshot;
+};
+
+const lastSnapshot = date => {
+  for (let i = snapshots.length - 1; i >= 0; i--) {
+    const snapshot = snapshots[i];
+    if (snapshot.createdAt <= date) return snapshot;
+  }
+
+  return null; //{ createdAt: new Date(), state: [] };
+};
+
+export const getCurrentState = (date, reducer) => {
+  const lastSnap = lastSnapshot(date);
+
+  const diff = eventStore.filter(x => x.createdAt <= date);
+
+  return (lastSnap
+    ? diff.filter(x => lastSnap.createdAt <= x.createdAt)
+    : diff
+  ).reduce(reducer, lastSnap ? lastSnap.state : []);
+};
+
+export const dispatch = item => {
+  eventStore.push(item);
 };
 
 export class Session {
@@ -16,6 +54,7 @@ export class Session {
   end() {
     this.endDate = new Date();
     this.members = [...this.project.members];
+    //takeSnapshot(voteReducer);
   }
 
   get isFinished() {
@@ -27,23 +66,26 @@ export class Session {
     if (!this.project.members.includes(user))
       throw `Sorry, ${user.name} is not a member`;
 
-    voteEventStore.push(new VoteEmited(user, checkpointId, this));
+    dispatch(new VoteEmited(user, checkpointId, this));
   }
 
   removeVote(user, checkpointId) {
     if (this.isFinished) throw "Session is finished, no one can remove a vote";
 
-    voteEventStore.push(new VoteRemoved(user, checkpointId, this));
+    dispatch(new VoteRemoved(user, checkpointId, this));
   }
 
   get votes() {
-    return voteEventStore
-      .filter(x => x.createdAt <= this.createdAt)
-      .reduce(voteReducer, []);
+    return getCurrentState(
+      this.isFinished ? this.endDate : this.createdAt,
+      voteReducer
+    );
   }
 
   get voters() {
-    return this.votes.map(x => x.voter);
+    return this.status
+      .getVotesByCheckpoint()
+      .reduce((ac, x) => [...ac, ...x.votes.map(v => v.voter)], []);
   }
 
   get status() {

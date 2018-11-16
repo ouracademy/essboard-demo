@@ -9,6 +9,7 @@ export class SessionStatus {
     const votes = state
       ? this.session.votes.filter(vote => byState(state.id)(vote.checkpointId))
       : this.session.votes;
+
     return toArray("checkpointId", groupBy(x => x.checkpointId)(votes))(
       "votes"
     );
