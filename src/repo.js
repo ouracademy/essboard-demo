@@ -1,25 +1,20 @@
-const Datastore = require("nedb");
-export const changesDb = new Datastore({
-  filename: "data/changes",
-  autoload: true,
-  timestampData: true
-});
-export const projectsDb = new Datastore({
+const Datastore = require("nedb-promises");
+export const projectRepository = Datastore.create({
   filename: "data/projects",
   autoload: true,
   timestampData: true
 });
-export const membersDb = new Datastore({
+export const memberRepository = Datastore.create({
   filename: "data/members",
   autoload: true,
   timestampData: true
 });
-export const sessionsDb = new Datastore({
+export const sessionRepository = Datastore.create({
   filename: "data/sessions",
   autoload: true,
   timestampData: true
 });
-export const eventsDb = new Datastore({
+export const eventRepository = Datastore.create({
   filename: "data/events",
   autoload: true,
   timestampData: true

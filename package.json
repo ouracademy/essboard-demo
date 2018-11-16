@@ -21,6 +21,7 @@
   "dependencies": {
     "@octokit/rest": "^15.17.0",
     "abab": "^2.0.0",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "nedb-promises": "^3.0.2"
   }
 }
