@@ -2,7 +2,7 @@ import {
   createEventStore,
   eventStore,
   dispatch,
-  getCurrentState,
+  getState,
   takeSnapshot,
   snapshots
 } from "./index";
@@ -28,9 +28,9 @@ describe("eventStore", () => {
     expect(eventStore).toHaveLength(2);
   });
 
-  it("getCurrentState", () => {
-    expect(getCurrentState(new Date(2018, 10, 16), reducer)).toEqual(["Cook"]);
-    expect(getCurrentState(new Date(2018, 10, 17), reducer)).toEqual([
+  it("getState", () => {
+    expect(getState(new Date(2018, 10, 16), reducer)).toEqual(["Cook"]);
+    expect(getState(new Date(2018, 10, 17), reducer)).toEqual([
       "Cook",
       "Wash the dishes"
     ]);
@@ -50,8 +50,8 @@ describe("eventStore", () => {
     it("contains current state", () => {
       expect(snapshot.state).toEqual(currentState);
     });
-    it("getCurrentState", () => {
-      expect(getCurrentState(new Date(2018, 10, 19), reducer)).toEqual([
+    it("getState", () => {
+      expect(getState(new Date(2018, 10, 19), reducer)).toEqual([
         "Cook",
         "Wash the dishes"
       ]);

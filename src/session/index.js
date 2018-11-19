@@ -12,7 +12,7 @@ export const createEventStore = () => {
 export const takeSnapshot = (reducer, timestamp = new Date()) => {
   const snapshot = {
     createdAt: timestamp,
-    state: getCurrentState(timestamp, reducer)
+    state: getState(timestamp, reducer)
   };
   snapshots.push(snapshot);
 
@@ -25,7 +25,7 @@ const lastSnapshot = date => {
   });
 };
 
-export const getCurrentState = (date, reducer) => {
+export const getState = (date, reducer) => {
   const lastSnap = lastSnapshot(date);
 
   return (lastSnap
@@ -72,7 +72,7 @@ export class Session {
   }
 
   get votes() {
-    return getCurrentState(
+    return getState(
       this.isFinished ? this.endDate : this.createdAt,
       voteReducer
     );
